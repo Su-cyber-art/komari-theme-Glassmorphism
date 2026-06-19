@@ -8,7 +8,7 @@ import { DataTooltip } from '@/components/ui/data-tooltip'
 import { ProgressThin } from '@/components/ui/progress-thin'
 import { useNodePingDisplay } from '@/composables/useNodePingDisplay'
 import { useAppStore } from '@/stores/app'
-import { formatBytesPerSecondWithConfig, formatBytesWithConfig, formatDateTime, formatUptimeWithFormat, getStatus } from '@/utils/helper'
+import { formatBytesPerSecondWithConfig, formatBytesWithConfig, formatDateTime, getStatus } from '@/utils/helper'
 import { getOSImage, getOSName } from '@/utils/osImageHelper'
 import { getRegionCode, getRegionDisplayName } from '@/utils/regionHelper'
 import { formatCurrencyValue, formatPriceWithCycle, getDaysOnline, getDaysUntilExpired, getExpireStatus, getRemainingValue, parseTags } from '@/utils/tagHelper'
@@ -19,7 +19,6 @@ const appStore = useAppStore()
 
 const formatBytes = (bytes: number) => formatBytesWithConfig(bytes, appStore.byteDecimals)
 const formatBytesPerSecond = (bytes: number) => formatBytesPerSecondWithConfig(bytes, appStore.byteDecimals)
-const formatUptime = (seconds: number) => formatUptimeWithFormat(seconds, 'hour')
 const offlineTime = computed(() => formatDateTime(props.node.time))
 
 const cpuStatus = computed(() => getStatus(props.node.cpu ?? 0))
@@ -47,12 +46,22 @@ const trafficUsedPercentage = computed(() => {
   const { net_total_up = 0, net_total_down = 0, traffic_limit_type } = props.node
   let used = 0
   switch (traffic_limit_type) {
-    case 'up': used = net_total_up; break
-    case 'down': used = net_total_down; break
-    case 'min': used = Math.min(net_total_up, net_total_down); break
-    case 'max': used = Math.max(net_total_up, net_total_down); break
+    case 'up':
+      used = net_total_up
+      break
+    case 'down':
+      used = net_total_down
+      break
+    case 'min':
+      used = Math.min(net_total_up, net_total_down)
+      break
+    case 'max':
+      used = Math.max(net_total_up, net_total_down)
+      break
     case 'sum':
-    default: used = net_total_up + net_total_down; break
+    default:
+      used = net_total_up + net_total_down
+      break
   }
   return Math.min((used / props.node.traffic_limit) * 100, 100)
 })

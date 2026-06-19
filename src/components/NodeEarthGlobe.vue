@@ -38,6 +38,8 @@ let globe: Globe | null = null
 const INITIAL_THETA = 0.22
 const MIN_THETA = -0.65
 const MAX_THETA = 0.65
+const CITY_SLUG_INVALID_CHAR_REGEX = /[^a-z0-9]+/g
+const CITY_SLUG_EDGE_DASH_REGEX = /^-+|-+$/g
 const CHINA_COORD = getCoordByCode('CN') ?? [35.8617, 104.1954]
 const DEFAULT_PHI = normalizePhi(-Math.PI / 2 - CHINA_COORD[1] * Math.PI / 180)
 let phi = DEFAULT_PHI
@@ -131,13 +133,6 @@ function shouldKeepStaticRedraw(): boolean {
   return now < staticRedrawUntil
 }
 
-function getCappedDpr(): number {
-  if (typeof window === 'undefined')
-    return 1.5
-  const raw = window.devicePixelRatio || 1
-  return Math.min(Math.max(raw, 1.5), 2)
-}
-
 interface RegionCluster {
   id: string
   code: string
@@ -161,8 +156,8 @@ function nodeClusterInfo(node: NodeData): { id: string, code: string, coord: [nu
     const code = (geo.countryCode || countryCode || '').toUpperCase()
     const citySlug = (geo.city || `${geo.lat.toFixed(2)},${geo.lng.toFixed(2)}`)
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
+      .replace(CITY_SLUG_INVALID_CHAR_REGEX, '-')
+      .replace(CITY_SLUG_EDGE_DASH_REGEX, '')
     return {
       id: `${(code || 'xx').toLowerCase()}-${citySlug || 'city'}`,
       code: code || (countryCode ?? ''),

@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import type { CurrencyCode } from '@/utils/financeHelper'
 import type { NodeData } from '@/stores/nodes'
+import type { CurrencyCode } from '@/utils/financeHelper'
 import type { IpGeo } from '@/utils/ipGeoHelper'
 import { Icon } from '@iconify/vue'
-import { computed, defineAsyncComponent, onMounted, ref } from 'vue'
-// 监听节点数据，获取厂商
-import { watch } from 'vue'
+import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -23,6 +21,7 @@ import { formatPrice, formatPriceWithCycle, getExpireStatus, getExpireText, pars
 
 const LoadChart = defineAsyncComponent(() => import('@/components/LoadChart.vue'))
 const PingChart = defineAsyncComponent(() => import('@/components/PingChart.vue'))
+const ASN_PREFIX_WITH_SPACE_REGEX = /^AS\d+\s*/i
 
 const route = useRoute()
 const router = useRouter()
@@ -237,7 +236,7 @@ async function resolveProvider(node: NodeData): Promise<void> {
   }
   // 4. 直接使用真实 ASN 组织名；都没有则留空
   if (org) {
-    const orgName = org.replace(/^AS\d+\s*/i, '').trim()
+    const orgName = org.replace(ASN_PREFIX_WITH_SPACE_REGEX, '').trim()
     vpsProvider.value = orgName ? { name: orgName, icon: 'tabler:server' } : null
     return
   }
