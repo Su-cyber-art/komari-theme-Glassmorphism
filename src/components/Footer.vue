@@ -27,40 +27,52 @@ const formattedServerVersion = computed(() => serverVersion.value?.version ?? nu
 const showIcp = computed(() => appStore.icpEnabled && appStore.icpNumber)
 const showPolice = computed(() => appStore.policeEnabled && appStore.policeNumber)
 const showFiling = computed(() => showIcp.value || showPolice.value)
+const showPoweredBy = computed(() => appStore.footerPoweredByEnabled)
+const showThemeCredit = computed(() => appStore.footerThemeCreditEnabled)
+const showFooterCredits = computed(() => showPoweredBy.value || showThemeCredit.value)
+const showFooter = computed(() => showFooterCredits.value || showFiling.value)
+const showPoweredByContent = computed(() => Boolean(appStore.footerPoweredByPrefix || appStore.footerPoweredByText))
+const showThemeCreditContent = computed(() => Boolean(appStore.footerThemeCreditPrefix || appStore.footerThemeCreditText))
 </script>
 
 <template>
-  <footer class="w-full sm:flex-row sm:gap-4 sm:items-center sm:justify-between max-w-[1280px] mx-auto p-4">
-    <div class="flex flex-row text-xs text-muted-foreground">
-      <div class="flex gap-1 items-center">
-        Powered by
+  <footer v-if="showFooter" class="w-full sm:flex-row sm:gap-4 sm:items-center sm:justify-between max-w-[1280px] mx-auto p-4">
+    <div v-if="showFooterCredits" class="flex flex-row text-xs text-muted-foreground">
+      <div v-if="showPoweredBy && showPoweredByContent" class="flex gap-1 items-center">
+        <span v-if="appStore.footerPoweredByPrefix">{{ appStore.footerPoweredByPrefix }}</span>
         <DataTooltip
+          v-if="appStore.footerPoweredByText"
           as="span"
           placement="top"
           :content="formattedServerVersion ?? ''"
         >
           <a
-            href="https://github.com/komari-monitor/komari" target="_blank" rel="noopener noreferrer"
+            v-if="appStore.footerPoweredByUrl"
+            :href="appStore.footerPoweredByUrl" target="_blank" rel="noopener noreferrer"
             class="transition-opacity hover:opacity-80"
           >
-            <span class="font-medium text-foreground">Komari Monitor</span>
+            <span class="font-medium text-foreground">{{ appStore.footerPoweredByText }}</span>
           </a>
+          <span v-else class="font-medium text-foreground">{{ appStore.footerPoweredByText }}</span>
         </DataTooltip>
       </div>
       <div class="flex-1" />
-      <div class="flex flex-wrap gap-1 items-center">
-        Theme by
+      <div v-if="showThemeCredit && showThemeCreditContent" class="flex flex-wrap gap-1 items-center">
+        <span v-if="appStore.footerThemeCreditPrefix">{{ appStore.footerThemeCreditPrefix }}</span>
         <DataTooltip
+          v-if="appStore.footerThemeCreditText"
           as="span"
           placement="top"
           :content="`v${buildVersion}\n${buildGitHash}`"
         >
           <a
-            href="https://github.com/komaris/komari-theme-Glassmorphism" target="_blank" rel="noopener noreferrer"
+            v-if="appStore.footerThemeCreditUrl"
+            :href="appStore.footerThemeCreditUrl" target="_blank" rel="noopener noreferrer"
             class="transition-opacity hover:opacity-80"
           >
-            <span class="font-medium text-foreground">Komari Glassmorphism</span>
+            <span class="font-medium text-foreground">{{ appStore.footerThemeCreditText }}</span>
           </a>
+          <span v-else class="font-medium text-foreground">{{ appStore.footerThemeCreditText }}</span>
         </DataTooltip>
       </div>
     </div>

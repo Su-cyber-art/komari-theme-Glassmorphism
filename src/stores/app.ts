@@ -174,6 +174,70 @@ const useAppStore = defineStore('app', () => {
     return true
   })
 
+  const footerPoweredByEnabled = computed<boolean>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.footerPoweredByEnabled === 'boolean') {
+      return settings.footerPoweredByEnabled
+    }
+    return true
+  })
+
+  const footerThemeCreditEnabled = computed<boolean>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.footerThemeCreditEnabled === 'boolean') {
+      return settings.footerThemeCreditEnabled
+    }
+    return true
+  })
+
+  const footerPoweredByPrefix = computed<string>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.footerPoweredByPrefix === 'string') {
+      return settings.footerPoweredByPrefix.trim()
+    }
+    return 'Powered by'
+  })
+
+  const footerPoweredByText = computed<string>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.footerPoweredByText === 'string') {
+      return settings.footerPoweredByText.trim()
+    }
+    return 'Komari Monitor'
+  })
+
+  const footerPoweredByUrl = computed<string>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.footerPoweredByUrl === 'string') {
+      return settings.footerPoweredByUrl.trim()
+    }
+    return 'https://github.com/komari-monitor/komari'
+  })
+
+  const footerThemeCreditPrefix = computed<string>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.footerThemeCreditPrefix === 'string') {
+      return settings.footerThemeCreditPrefix.trim()
+    }
+    return 'Theme by'
+  })
+
+  const footerThemeCreditText = computed<string>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.footerThemeCreditText === 'string') {
+      return settings.footerThemeCreditText.trim()
+    }
+    return 'Komari Glassmorphism'
+  })
+
+  const footerThemeCreditUrl = computed<string>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.footerThemeCreditUrl === 'string') {
+      return settings.footerThemeCreditUrl.trim()
+    }
+    return 'https://github.com/komaris/komari-theme-Glassmorphism'
+  })
+
   // 计算属性：ICP 备案配置
   const icpEnabled = computed<boolean>(() => {
     const settings = publicSettings.value?.theme_settings
@@ -353,6 +417,14 @@ const useAppStore = defineStore('app', () => {
     disablePageAnimation,
     visitorCardEnabled,
     visitorBarEnabled,
+    footerPoweredByEnabled,
+    footerThemeCreditEnabled,
+    footerPoweredByPrefix,
+    footerPoweredByText,
+    footerPoweredByUrl,
+    footerThemeCreditPrefix,
+    footerThemeCreditText,
+    footerThemeCreditUrl,
     icpEnabled,
     icpNumber,
     icpUrl,
