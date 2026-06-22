@@ -23,7 +23,6 @@
       { "key": "stopEarth", "name": "停止地球旋转", "type": "switch", "default": false, "help": "开启后地球默认不自动旋转，用户仍可手动拖拽查看" },
       { "key": "hideEarth", "name": "隐藏地球", "type": "switch", "default": false, "help": "隐藏地球后仅显示总览卡片" },
       { "key": "hideGeneralCard", "name": "隐藏头部", "type": "switch", "default": false, "help": "隐藏地球和总览卡片" },
-      { "key": "visitorInfoEnabled", "name": "显示访客信息", "type": "switch", "default": true, "help": "显示底部访客 IP 条和左下角访客详情卡片" },
       { "key": "visitorGeoArcEnabled", "name": "访客位置连线", "type": "switch", "default": true, "help": "使用访客位置作为地球连线起点；关闭后不请求访客坐标" },
       { "name": "头部卡片设置", "type": "title" },
       { "key": "generalCardOrder", "name": "头部卡片显示顺序", "type": "string", "default": "memory,disk,remainingValue,totalTraffic,uploadSpeed,downloadSpeed", "help": "用英文逗号分隔卡片标识。可用值：memory,disk,remainingValue,totalTraffic,uploadSpeed,downloadSpeed,onlineNodes,avgCpu,avgLoad,swap,processes,connections,avgTemperature,cpuCores,trafficQuota" },

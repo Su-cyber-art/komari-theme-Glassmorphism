@@ -225,13 +225,6 @@ const useAppStore = defineStore('app', () => {
     return false
   })
 
-  const visitorInfoEnabled = computed<boolean>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.visitorInfoEnabled === 'boolean')
-      return settings.visitorInfoEnabled
-    return true
-  })
-
   const visitorGeoArcEnabled = computed<boolean>(() => {
     const settings = publicSettings.value?.theme_settings
     if (settings && typeof settings.visitorGeoArcEnabled === 'boolean')
@@ -570,7 +563,6 @@ const useAppStore = defineStore('app', () => {
     stopEarth,
     hideEarth,
     hideGeneralCard,
-    visitorInfoEnabled,
     visitorGeoArcEnabled,
     generalCardEnabledMap,
     generalCardOrder,

@@ -50,7 +50,7 @@ const sitename = computed(() => appStore.publicSettings?.sitename || 'Komari Mon
 
 <template>
   <!-- 访客 IP 组件，全局悬浮 -->
-  <VisitorInfo v-if="!appStore.loading && appStore.visitorInfoEnabled" />
+  <VisitorInfo v-if="!appStore.loading && (appStore.visitorCardEnabled || appStore.visitorBarEnabled)" />
 
   <div
     class="transition-all duration-200 top-0 sticky z-10 border-b border-transparent"
