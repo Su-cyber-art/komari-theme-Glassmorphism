@@ -1,6 +1,6 @@
 import type { PublicSettings } from '@/utils/api'
 import type { ByteDecimalsConfig } from '@/utils/helper'
-import { usePreferredDark, useStorageAsync } from '@vueuse/core'
+import { useMediaQuery, usePreferredDark, useStorageAsync } from '@vueuse/core'
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 
@@ -458,7 +458,7 @@ const useAppStore = defineStore('app', () => {
     return 'image'
   })
 
-  const lightBackgroundUrl = computed<string>(() => {
+  const desktopBackgroundUrl = computed<string>(() => {
     const settings = publicSettings.value?.theme_settings
     if (settings && typeof settings.lightBackgroundUrl === 'string') {
       return settings.lightBackgroundUrl.trim()
@@ -466,7 +466,7 @@ const useAppStore = defineStore('app', () => {
     return ''
   })
 
-  const darkBackgroundUrl = computed<string>(() => {
+  const mobileBackgroundUrl = computed<string>(() => {
     const settings = publicSettings.value?.theme_settings
     if (settings && typeof settings.darkBackgroundUrl === 'string') {
       return settings.darkBackgroundUrl.trim()
@@ -500,6 +500,7 @@ const useAppStore = defineStore('app', () => {
 
   // 使用 VueUse 的 usePreferredDark 检测系统主题偏好
   const prefersDark = usePreferredDark()
+  const isMobileViewport = useMediaQuery('(max-width: 767px)')
 
   watch(themeMode, (mode) => {
     if (!isValidThemeMode(mode)) {
@@ -517,12 +518,12 @@ const useAppStore = defineStore('app', () => {
 
   const resolvedThemeMode = computed<'light' | 'dark'>(() => isDark.value ? 'dark' : 'light')
 
-  // 计算属性：当前主题模式下的背景 URL
+  // 计算属性：当前视口尺寸下的背景 URL
   const currentBackgroundUrl = computed<string>(() => {
-    if (resolvedThemeMode.value === 'dark') {
-      return darkBackgroundUrl.value
+    if (isMobileViewport.value && mobileBackgroundUrl.value) {
+      return mobileBackgroundUrl.value
     }
-    return lightBackgroundUrl.value
+    return desktopBackgroundUrl.value
   })
 
   function updateThemeMode(mode?: ThemeMode) {
@@ -588,8 +589,8 @@ const useAppStore = defineStore('app', () => {
     policeUrl,
     backgroundEnabled,
     backgroundType,
-    lightBackgroundUrl,
-    darkBackgroundUrl,
+    desktopBackgroundUrl,
+    mobileBackgroundUrl,
     currentBackgroundUrl,
     backgroundBlur,
     backgroundOverlay,

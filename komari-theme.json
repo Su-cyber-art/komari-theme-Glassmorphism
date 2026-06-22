@@ -67,8 +67,8 @@
       { "name": "自定义背景", "type": "title" },
       { "key": "backgroundEnabled", "name": "启用自定义背景", "type": "switch", "default": false, "help": "启用后可设置自定义图片或视频作为页面背景" },
       { "key": "backgroundType", "name": "背景类型", "type": "select", "default": "image", "options": "image,video", "help": "选择背景类型：图片或视频" },
-      { "key": "lightBackgroundUrl", "name": "亮色模式背景地址", "type": "string", "default": "", "help": "亮色模式下的背景图片/视频 URL" },
-      { "key": "darkBackgroundUrl", "name": "暗色模式背景地址", "type": "string", "default": "", "help": "暗色模式下的背景图片/视频 URL" },
+      { "key": "lightBackgroundUrl", "name": "桌面端背景 URL", "type": "string", "default": "", "help": "桌面端使用的背景图片/视频 URL；移动端未设置时也会使用此地址" },
+      { "key": "darkBackgroundUrl", "name": "移动端背景 URL", "type": "string", "default": "", "help": "移动端使用的背景图片/视频 URL；留空则使用桌面端背景 URL" },
       { "key": "backgroundBlur", "name": "背景模糊半径", "type": "number", "default": 0, "help": "背景的高斯模糊半径（单位：px），0 表示不模糊" },
       { "key": "backgroundOverlay", "name": "背景遮罩强度", "type": "number", "default": 0, "help": "背景遮罩强度（-100 到 100）：负数降低背景透明度，0 表示关闭，正数为黑色遮罩，绝对值越大效果越明显" }
     ]
