@@ -5,8 +5,26 @@ import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 
 export type ThemeMode = 'auto' | 'light' | 'dark'
+export type GeneralCardKey
+  = | 'memory'
+    | 'disk'
+    | 'remainingValue'
+    | 'totalTraffic'
+    | 'uploadSpeed'
+    | 'downloadSpeed'
+    | 'onlineNodes'
+    | 'avgCpu'
+    | 'avgLoad'
+    | 'swap'
+    | 'processes'
+    | 'connections'
+    | 'avgTemperature'
+    | 'cpuCores'
+    | 'trafficQuota'
+
 type Lang = 'zh-CN' | 'en-US'
 type NodeViewMode = 'card' | 'list'
+type NodeCardSize = 'compact' | 'comfortable' | 'large'
 type RpcTransportMode = 'websocket' | 'http'
 
 /** 固定的字节精度配置 */
@@ -18,8 +36,70 @@ const BYTE_DECIMALS: ByteDecimalsConfig = {
   TB: 2,
 }
 
+const DEFAULT_GENERAL_CARD_ORDER: GeneralCardKey[] = [
+  'memory',
+  'disk',
+  'remainingValue',
+  'totalTraffic',
+  'uploadSpeed',
+  'downloadSpeed',
+]
+
+const ALL_GENERAL_CARD_KEYS = [
+  ...DEFAULT_GENERAL_CARD_ORDER,
+  'onlineNodes',
+  'avgCpu',
+  'avgLoad',
+  'swap',
+  'processes',
+  'connections',
+  'avgTemperature',
+  'cpuCores',
+  'trafficQuota',
+] as const satisfies readonly GeneralCardKey[]
+
+const DEFAULT_GENERAL_CARD_ENABLED: Record<GeneralCardKey, boolean> = {
+  memory: true,
+  disk: true,
+  remainingValue: true,
+  totalTraffic: true,
+  uploadSpeed: true,
+  downloadSpeed: true,
+  onlineNodes: false,
+  avgCpu: false,
+  avgLoad: false,
+  swap: false,
+  processes: false,
+  connections: false,
+  avgTemperature: false,
+  cpuCores: false,
+  trafficQuota: false,
+}
+
+const GENERAL_CARD_SETTING_KEYS: Record<GeneralCardKey, string> = {
+  memory: 'generalCardMemoryEnabled',
+  disk: 'generalCardDiskEnabled',
+  remainingValue: 'generalCardRemainingValueEnabled',
+  totalTraffic: 'generalCardTotalTrafficEnabled',
+  uploadSpeed: 'generalCardUploadSpeedEnabled',
+  downloadSpeed: 'generalCardDownloadSpeedEnabled',
+  onlineNodes: 'generalCardOnlineNodesEnabled',
+  avgCpu: 'generalCardAvgCpuEnabled',
+  avgLoad: 'generalCardAvgLoadEnabled',
+  swap: 'generalCardSwapEnabled',
+  processes: 'generalCardProcessesEnabled',
+  connections: 'generalCardConnectionsEnabled',
+  avgTemperature: 'generalCardAvgTemperatureEnabled',
+  cpuCores: 'generalCardCpuCoresEnabled',
+  trafficQuota: 'generalCardTrafficQuotaEnabled',
+}
+
 function isValidThemeMode(value: unknown): value is ThemeMode {
   return value === 'auto' || value === 'light' || value === 'dark'
+}
+
+function isGeneralCardKey(value: string): value is GeneralCardKey {
+  return (ALL_GENERAL_CARD_KEYS as readonly string[]).includes(value)
 }
 
 const useAppStore = defineStore('app', () => {
@@ -55,6 +135,17 @@ const useAppStore = defineStore('app', () => {
   function isValidViewMode(value: string | null): value is NodeViewMode {
     return value === 'card' || value === 'list'
   }
+
+  function isValidNodeCardSize(value: unknown): value is NodeCardSize {
+    return value === 'compact' || value === 'comfortable' || value === 'large'
+  }
+
+  const nodeCardSize = computed<NodeCardSize>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && isValidNodeCardSize(settings.nodeCardSize))
+      return settings.nodeCardSize
+    return 'compact'
+  })
 
   // 当前实际使用的视图模式
   const nodeViewMode = computed<NodeViewMode>({
@@ -134,6 +225,65 @@ const useAppStore = defineStore('app', () => {
     return false
   })
 
+  const visitorInfoEnabled = computed<boolean>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.visitorInfoEnabled === 'boolean')
+      return settings.visitorInfoEnabled
+    return true
+  })
+
+  const visitorGeoArcEnabled = computed<boolean>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.visitorGeoArcEnabled === 'boolean')
+      return settings.visitorGeoArcEnabled
+    return true
+  })
+
+  const generalCardEnabledMap = computed<Record<GeneralCardKey, boolean>>(() => {
+    const settings = publicSettings.value?.theme_settings
+    const enabledMap = { ...DEFAULT_GENERAL_CARD_ENABLED }
+
+    if (!settings)
+      return enabledMap
+
+    for (const key of ALL_GENERAL_CARD_KEYS) {
+      const settingKey = GENERAL_CARD_SETTING_KEYS[key]
+      const value = settings[settingKey]
+      if (typeof value === 'boolean')
+        enabledMap[key] = value
+    }
+
+    return enabledMap
+  })
+
+  const generalCardOrder = computed<GeneralCardKey[]>(() => {
+    const settings = publicSettings.value?.theme_settings
+    const rawOrder = settings?.generalCardOrder
+    const parsedOrder: GeneralCardKey[] = []
+    const seenKeys = new Set<GeneralCardKey>()
+
+    if (typeof rawOrder === 'string') {
+      for (const item of rawOrder.split(',')) {
+        const key = item.trim()
+        if (!isGeneralCardKey(key) || seenKeys.has(key))
+          continue
+        parsedOrder.push(key)
+        seenKeys.add(key)
+      }
+    }
+
+    const orderedKeys = parsedOrder.length > 0 ? [...parsedOrder] : [...DEFAULT_GENERAL_CARD_ORDER]
+    const orderedKeySet = new Set<GeneralCardKey>(orderedKeys)
+    for (const key of ALL_GENERAL_CARD_KEYS) {
+      if (orderedKeySet.has(key))
+        continue
+      orderedKeys.push(key)
+      orderedKeySet.add(key)
+    }
+
+    return orderedKeys.filter(key => generalCardEnabledMap.value[key])
+  })
+
   const hideAdminEntryWhenLoggedOut = computed<boolean>(() => {
     const settings = publicSettings.value?.theme_settings
     if (settings && typeof settings.hideAdminEntryWhenLoggedOut === 'boolean') {
@@ -148,6 +298,13 @@ const useAppStore = defineStore('app', () => {
       return settings.hidePriceWhenLoggedOut
     }
     return false
+  })
+
+  const providerAliases = computed<string>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.providerAliases === 'string')
+      return settings.providerAliases.trim()
+    return ''
   })
 
   const disablePageAnimation = computed<boolean>(() => {
@@ -404,6 +561,7 @@ const useAppStore = defineStore('app', () => {
     nodeSelectedGroup,
     nodeViewMode,
     defaultViewMode,
+    nodeCardSize,
     rpcTransportMode,
     byteDecimals,
     alertEnabled,
@@ -412,8 +570,13 @@ const useAppStore = defineStore('app', () => {
     stopEarth,
     hideEarth,
     hideGeneralCard,
+    visitorInfoEnabled,
+    visitorGeoArcEnabled,
+    generalCardEnabledMap,
+    generalCardOrder,
     hideAdminEntryWhenLoggedOut,
     hidePriceWhenLoggedOut,
+    providerAliases,
     disablePageAnimation,
     visitorCardEnabled,
     visitorBarEnabled,
