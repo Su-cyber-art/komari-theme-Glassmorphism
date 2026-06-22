@@ -194,21 +194,19 @@ function hasRegion(region: string | null | undefined): boolean {
             :class="props.node.online ? 'bg-green-500' : 'bg-red-500'"
           />
         </div>
-        <span class="text-sm font-bold flex-1 min-w-0 truncate">{{ props.node.name }}</span>
-      </div>
-    </template>
-
-    <!-- 头部右侧：OS + 国旗 -->
-    <template #header-extra>
-      <div class="flex gap-1.5 items-center shrink-0">
-        <img :src="getOSImage(props.node.os)" :alt="getOSName(props.node.os)" class="size-4">
         <img
           v-if="hasRegion(props.node.region)"
           :src="`/images/flags/${getRegionCode(props.node.region)}.svg`"
           :alt="getRegionDisplayName(props.node.region)"
           class="size-5 shrink-0"
         >
+        <span class="text-sm font-bold flex-1 min-w-0 truncate">{{ props.node.name }}</span>
       </div>
+    </template>
+
+    <!-- 头部右侧：系统图标 -->
+    <template #header-extra>
+      <img :src="getOSImage(props.node.os)" :alt="getOSName(props.node.os)" class="size-4 shrink-0">
     </template>
 
     <template #default>
