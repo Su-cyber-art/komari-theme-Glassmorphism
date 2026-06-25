@@ -40,6 +40,7 @@ const nodeGeo = ref<IpGeo | null>(null)
 // 近一天网速峰值（B/s）
 const peakNetOut = ref(0)
 const peakNetIn = ref(0)
+const data = computed(() => nodesStore.nodes.find(node => node.uuid === route.params.id))
 
 // CPU 评分
 interface CpuScore {
@@ -112,7 +113,6 @@ function estimateCpuScore(cpuName: string): CpuScore {
 }
 
 let providerResolveSeq = 0
-const data = computed(() => nodesStore.nodes.find(node => node.uuid === route.params.id))
 
 async function lookupNodeGeo(node: NodeData): Promise<IpGeo | null> {
   const ips = [node.ipv4, node.ipv6].filter((ip): ip is string => Boolean(ip?.trim()))

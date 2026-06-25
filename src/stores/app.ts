@@ -18,14 +18,42 @@ export type GeneralCardKey
     | 'swap'
     | 'processes'
     | 'connections'
-    | 'avgTemperature'
     | 'cpuCores'
     | 'trafficQuota'
+    | 'trafficPeak'
+    | 'uploadPeakNode'
+    | 'downloadPeakNode'
+    | 'offlineNodes'
+    | 'highLoadNodes'
+    | 'expiringNodes'
+    | 'trafficWarnings'
+    | 'connectionPeakNode'
+    | 'regionDistribution'
+    | 'systemDistribution'
+    | 'virtualizationDistribution'
+    | 'monthlyCost'
+    | 'yearlyCost'
 
+export type HomeQuickControlKey
+  = | 'default'
+    | 'monthlyCost'
+    | 'totalTraffic'
+    | 'upload'
+    | 'download'
+    | 'peak'
+    | 'offline'
+    | 'highLoad'
+    | 'expiring'
+
+type GeneralCardPreset = 'basic' | 'ops' | 'finance' | 'traffic' | 'full' | 'custom'
+type HomeQuickControlPreset = 'basic' | 'traffic' | 'ops' | 'full' | 'custom'
 type Lang = 'zh-CN' | 'en-US'
 type NodeViewMode = 'card' | 'list'
 type NodeCardSize = 'compact' | 'comfortable' | 'large'
 type RpcTransportMode = 'websocket' | 'http'
+type EarthRenderer = 'realistic' | 'cobe' | 'tiled'
+
+type ThemeSettings = Record<string, unknown>
 
 /** 固定的字节精度配置 */
 const BYTE_DECIMALS: ByteDecimalsConfig = {
@@ -46,16 +74,33 @@ const DEFAULT_GENERAL_CARD_ORDER: GeneralCardKey[] = [
 ]
 
 const ALL_GENERAL_CARD_KEYS = [
-  ...DEFAULT_GENERAL_CARD_ORDER,
+  'memory',
+  'disk',
+  'remainingValue',
+  'monthlyCost',
+  'totalTraffic',
+  'uploadSpeed',
+  'downloadSpeed',
   'onlineNodes',
+  'offlineNodes',
   'avgCpu',
   'avgLoad',
   'swap',
   'processes',
   'connections',
-  'avgTemperature',
   'cpuCores',
   'trafficQuota',
+  'trafficPeak',
+  'uploadPeakNode',
+  'downloadPeakNode',
+  'highLoadNodes',
+  'expiringNodes',
+  'trafficWarnings',
+  'connectionPeakNode',
+  'regionDistribution',
+  'systemDistribution',
+  'virtualizationDistribution',
+  'yearlyCost',
 ] as const satisfies readonly GeneralCardKey[]
 
 const DEFAULT_GENERAL_CARD_ENABLED: Record<GeneralCardKey, boolean> = {
@@ -71,12 +116,24 @@ const DEFAULT_GENERAL_CARD_ENABLED: Record<GeneralCardKey, boolean> = {
   swap: false,
   processes: false,
   connections: false,
-  avgTemperature: false,
   cpuCores: false,
   trafficQuota: false,
+  trafficPeak: false,
+  uploadPeakNode: false,
+  downloadPeakNode: false,
+  offlineNodes: false,
+  highLoadNodes: false,
+  expiringNodes: false,
+  trafficWarnings: false,
+  connectionPeakNode: false,
+  regionDistribution: false,
+  systemDistribution: false,
+  virtualizationDistribution: false,
+  monthlyCost: false,
+  yearlyCost: false,
 }
 
-const GENERAL_CARD_SETTING_KEYS: Record<GeneralCardKey, string> = {
+const LEGACY_GENERAL_CARD_SETTING_KEYS: Partial<Record<GeneralCardKey, string>> = {
   memory: 'generalCardMemoryEnabled',
   disk: 'generalCardDiskEnabled',
   remainingValue: 'generalCardRemainingValueEnabled',
@@ -89,10 +146,95 @@ const GENERAL_CARD_SETTING_KEYS: Record<GeneralCardKey, string> = {
   swap: 'generalCardSwapEnabled',
   processes: 'generalCardProcessesEnabled',
   connections: 'generalCardConnectionsEnabled',
-  avgTemperature: 'generalCardAvgTemperatureEnabled',
   cpuCores: 'generalCardCpuCoresEnabled',
   trafficQuota: 'generalCardTrafficQuotaEnabled',
 }
+
+const DEFAULT_HOME_QUICK_CONTROL_ORDER: HomeQuickControlKey[] = [
+  'default',
+  'monthlyCost',
+  'totalTraffic',
+  'upload',
+  'download',
+  'peak',
+  'offline',
+  'highLoad',
+  'expiring',
+]
+
+const ALL_HOME_QUICK_CONTROL_KEYS = [
+  ...DEFAULT_HOME_QUICK_CONTROL_ORDER,
+] as const satisfies readonly HomeQuickControlKey[]
+
+const GENERAL_CARD_PRESETS: Record<GeneralCardPreset, GeneralCardKey[]> = {
+  basic: DEFAULT_GENERAL_CARD_ORDER,
+  ops: [
+    ...DEFAULT_GENERAL_CARD_ORDER,
+    'onlineNodes',
+    'offlineNodes',
+    'highLoadNodes',
+    'trafficWarnings',
+    'connectionPeakNode',
+    'avgCpu',
+    'avgLoad',
+    'cpuCores',
+    'trafficQuota',
+  ],
+  finance: [
+    ...DEFAULT_GENERAL_CARD_ORDER,
+    'expiringNodes',
+    'monthlyCost',
+    'yearlyCost',
+  ],
+  traffic: [
+    ...DEFAULT_GENERAL_CARD_ORDER,
+    'trafficPeak',
+    'uploadPeakNode',
+    'downloadPeakNode',
+    'trafficWarnings',
+    'trafficQuota',
+  ],
+  full: [...ALL_GENERAL_CARD_KEYS],
+  custom: DEFAULT_GENERAL_CARD_ORDER,
+}
+
+const HOME_QUICK_CONTROL_PRESETS: Record<HomeQuickControlPreset, HomeQuickControlKey[]> = {
+  basic: ['default', 'monthlyCost', 'peak', 'offline'],
+  traffic: ['default', 'totalTraffic', 'upload', 'download', 'peak'],
+  ops: ['default', 'monthlyCost', 'offline', 'highLoad', 'expiring'],
+  full: DEFAULT_HOME_QUICK_CONTROL_ORDER,
+  custom: DEFAULT_HOME_QUICK_CONTROL_ORDER,
+}
+
+const GENERAL_CARD_PRESET_ALIASES: Record<string, GeneralCardPreset> = {
+  basic: 'basic',
+  基础: 'basic',
+  ops: 'ops',
+  运维: 'ops',
+  finance: 'finance',
+  财务: 'finance',
+  traffic: 'traffic',
+  流量: 'traffic',
+  full: 'full',
+  完整: 'full',
+  custom: 'custom',
+  自定义: 'custom',
+}
+
+const HOME_QUICK_CONTROL_PRESET_ALIASES: Record<string, HomeQuickControlPreset> = {
+  basic: 'basic',
+  基础: 'basic',
+  traffic: 'traffic',
+  流量: 'traffic',
+  ops: 'ops',
+  运维: 'ops',
+  full: 'full',
+  完整: 'full',
+  custom: 'custom',
+  自定义: 'custom',
+}
+
+const EMPTY_THEME_SETTINGS: ThemeSettings = {}
 
 function isValidThemeMode(value: unknown): value is ThemeMode {
   return value === 'auto' || value === 'light' || value === 'dark'
@@ -100,6 +242,74 @@ function isValidThemeMode(value: unknown): value is ThemeMode {
 
 function isGeneralCardKey(value: string): value is GeneralCardKey {
   return (ALL_GENERAL_CARD_KEYS as readonly string[]).includes(value)
+}
+
+function isHomeQuickControlKey(value: string): value is HomeQuickControlKey {
+  return (ALL_HOME_QUICK_CONTROL_KEYS as readonly string[]).includes(value)
+}
+
+function parseGeneralCardPreset(value: unknown): GeneralCardPreset {
+  if (typeof value !== 'string')
+    return 'basic'
+
+  return GENERAL_CARD_PRESET_ALIASES[value.trim()] ?? 'basic'
+}
+
+function parseHomeQuickControlPreset(value: unknown): HomeQuickControlPreset {
+  if (typeof value !== 'string')
+    return 'full'
+
+  return HOME_QUICK_CONTROL_PRESET_ALIASES[value.trim()] ?? 'full'
+}
+
+function normalizeThemeSettings(raw: unknown): ThemeSettings {
+  if (!raw)
+    return EMPTY_THEME_SETTINGS
+
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw) as unknown
+      return normalizeThemeSettings(parsed)
+    }
+    catch {
+      return EMPTY_THEME_SETTINGS
+    }
+  }
+
+  if (typeof raw === 'object' && !Array.isArray(raw))
+    return raw as ThemeSettings
+
+  return EMPTY_THEME_SETTINGS
+}
+
+function parseKeyList<T extends string>(rawValue: unknown, isValid: (value: string) => value is T, fallback: readonly T[]): T[] {
+  const parsedKeys: T[] = []
+  const seenKeys = new Set<T>()
+
+  if (typeof rawValue === 'string') {
+    for (const item of rawValue.split(',')) {
+      const key = item.trim()
+      if (!isValid(key) || seenKeys.has(key))
+        continue
+      parsedKeys.push(key)
+      seenKeys.add(key)
+    }
+  }
+
+  return parsedKeys.length > 0 ? parsedKeys : [...fallback]
+}
+
+function readBooleanSetting(settings: ThemeSettings, key: string, fallback: boolean): boolean {
+  const value = settings[key]
+  return typeof value === 'boolean' ? value : fallback
+}
+
+function readNumberSetting(settings: ThemeSettings, key: string, fallback: number, min: number, max: number): number {
+  const value = settings[key]
+  if (typeof value !== 'number' || !Number.isFinite(value))
+    return fallback
+
+  return Math.min(Math.max(value, min), max)
 }
 
 const useAppStore = defineStore('app', () => {
@@ -113,6 +323,8 @@ const useAppStore = defineStore('app', () => {
   const isLoggedIn = ref<boolean>(false)
   const connectionError = ref<boolean>(false)
 
+  const themeSettings = computed(() => normalizeThemeSettings(publicSettings.value?.theme_settings))
+
   // 首页滚动位置记忆
   const homeScrollPosition = ref<number>(0)
 
@@ -121,8 +333,8 @@ const useAppStore = defineStore('app', () => {
 
   // 计算属性：从主题配置获取默认视图模式
   const defaultViewMode = computed<NodeViewMode>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.defaultViewMode === 'string') {
+    const settings = themeSettings.value
+    if (typeof settings.defaultViewMode === 'string') {
       const mode = settings.defaultViewMode
       if (mode === 'card' || mode === 'list') {
         return mode
@@ -140,9 +352,13 @@ const useAppStore = defineStore('app', () => {
     return value === 'compact' || value === 'comfortable' || value === 'large'
   }
 
+  function isValidEarthRenderer(value: unknown): value is EarthRenderer {
+    return value === 'realistic' || value === 'cobe' || value === 'tiled'
+  }
+
   const nodeCardSize = computed<NodeCardSize>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && isValidNodeCardSize(settings.nodeCardSize))
+    const settings = themeSettings.value
+    if (isValidNodeCardSize(settings.nodeCardSize))
       return settings.nodeCardSize
     return 'compact'
   })
@@ -163,8 +379,8 @@ const useAppStore = defineStore('app', () => {
 
   // 计算属性：从主题配置获取 RPC 连接模式
   const rpcTransportMode = computed<RpcTransportMode>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.rpcTransportMode === 'string') {
+    const settings = themeSettings.value
+    if (typeof settings.rpcTransportMode === 'string') {
       const mode = settings.rpcTransportMode
       if (mode === 'websocket' || mode === 'http') {
         return mode
@@ -177,70 +393,40 @@ const useAppStore = defineStore('app', () => {
   const byteDecimals: ByteDecimalsConfig = { ...BYTE_DECIMALS }
 
   // 计算属性：公告配置
-  const alertEnabled = computed<boolean>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.alertEnabled === 'boolean') {
-      return settings.alertEnabled
-    }
-    return false
-  })
+  const alertEnabled = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'alertEnabled', false))
 
   const alertTitle = computed<string>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.alertTitle === 'string') {
-      return settings.alertTitle
-    }
-    return ''
+    const value = themeSettings.value.alertTitle
+    return typeof value === 'string' ? value : ''
   })
 
   const alertContent = computed<string>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.alertContent === 'string') {
-      return settings.alertContent
-    }
-    return ''
+    const value = themeSettings.value.alertContent
+    return typeof value === 'string' ? value : ''
   })
 
-  const stopEarth = computed<boolean>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.stopEarth === 'boolean') {
-      return settings.stopEarth
-    }
-    return false
+  const stopEarth = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'stopEarth', false))
+
+  const earthRenderer = computed<EarthRenderer>(() => {
+    const value = themeSettings.value.earthRenderer
+    return isValidEarthRenderer(value) ? value : 'realistic'
   })
 
-  const hideEarth = computed<boolean>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.hideEarth === 'boolean') {
-      return settings.hideEarth
-    }
-    return false
-  })
+  const hideEarth = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'hideEarth', false))
 
-  const hideGeneralCard = computed<boolean>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.hideGeneralCard === 'boolean') {
-      return settings.hideGeneralCard
-    }
-    return false
-  })
+  const hideGeneralCard = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'hideGeneralCard', false))
 
-  const visitorGeoArcEnabled = computed<boolean>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.visitorGeoArcEnabled === 'boolean')
-      return settings.visitorGeoArcEnabled
-    return true
-  })
+  const visitorGeoArcEnabled = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'visitorGeoArcEnabled', true))
 
   const generalCardEnabledMap = computed<Record<GeneralCardKey, boolean>>(() => {
-    const settings = publicSettings.value?.theme_settings
+    const settings = themeSettings.value
     const enabledMap = { ...DEFAULT_GENERAL_CARD_ENABLED }
 
-    if (!settings)
-      return enabledMap
-
     for (const key of ALL_GENERAL_CARD_KEYS) {
-      const settingKey = GENERAL_CARD_SETTING_KEYS[key]
+      const settingKey = LEGACY_GENERAL_CARD_SETTING_KEYS[key]
+      if (!settingKey)
+        continue
+
       const value = settings[settingKey]
       if (typeof value === 'boolean')
         enabledMap[key] = value
@@ -250,22 +436,21 @@ const useAppStore = defineStore('app', () => {
   })
 
   const generalCardOrder = computed<GeneralCardKey[]>(() => {
-    const settings = publicSettings.value?.theme_settings
-    const rawOrder = settings?.generalCardOrder
-    const parsedOrder: GeneralCardKey[] = []
-    const seenKeys = new Set<GeneralCardKey>()
+    const settings = themeSettings.value
+    const hasNewPreset = typeof settings.generalCardPreset === 'string'
+    const preset = parseGeneralCardPreset(settings.generalCardPreset)
 
-    if (typeof rawOrder === 'string') {
-      for (const item of rawOrder.split(',')) {
-        const key = item.trim()
-        if (!isGeneralCardKey(key) || seenKeys.has(key))
-          continue
-        parsedOrder.push(key)
-        seenKeys.add(key)
-      }
+    if (hasNewPreset) {
+      if (preset === 'custom')
+        return parseKeyList(settings.generalCardKeys, isGeneralCardKey, DEFAULT_GENERAL_CARD_ORDER)
+
+      return [...GENERAL_CARD_PRESETS[preset]]
     }
 
-    const orderedKeys = parsedOrder.length > 0 ? [...parsedOrder] : [...DEFAULT_GENERAL_CARD_ORDER]
+    if (typeof settings.generalCardKeys === 'string')
+      return parseKeyList(settings.generalCardKeys, isGeneralCardKey, DEFAULT_GENERAL_CARD_ORDER)
+
+    const orderedKeys = parseKeyList(settings.generalCardOrder, isGeneralCardKey, DEFAULT_GENERAL_CARD_ORDER)
     const orderedKeySet = new Set<GeneralCardKey>(orderedKeys)
     for (const key of ALL_GENERAL_CARD_KEYS) {
       if (orderedKeySet.has(key))
@@ -277,179 +462,134 @@ const useAppStore = defineStore('app', () => {
     return orderedKeys.filter(key => generalCardEnabledMap.value[key])
   })
 
-  const hideAdminEntryWhenLoggedOut = computed<boolean>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.hideAdminEntryWhenLoggedOut === 'boolean') {
-      return settings.hideAdminEntryWhenLoggedOut
-    }
-    return false
+  const homeQuickControlsEnabled = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'homeQuickControlsEnabled', true))
+
+  const homeQuickControlOrder = computed<HomeQuickControlKey[]>(() => {
+    const settings = themeSettings.value
+    const preset = parseHomeQuickControlPreset(settings.homeQuickControlPreset)
+    if (preset === 'custom')
+      return parseKeyList(settings.homeQuickControlKeys, isHomeQuickControlKey, DEFAULT_HOME_QUICK_CONTROL_ORDER)
+
+    if (typeof settings.homeQuickControlKeys === 'string' && typeof settings.homeQuickControlPreset !== 'string')
+      return parseKeyList(settings.homeQuickControlKeys, isHomeQuickControlKey, DEFAULT_HOME_QUICK_CONTROL_ORDER)
+
+    return [...HOME_QUICK_CONTROL_PRESETS[preset]]
   })
 
-  const hidePriceWhenLoggedOut = computed<boolean>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.hidePriceWhenLoggedOut === 'boolean') {
-      return settings.hidePriceWhenLoggedOut
-    }
-    return false
+  const homeQuickDefaultControl = computed<HomeQuickControlKey>(() => {
+    const value = themeSettings.value.homeQuickDefaultControl
+    if (typeof value === 'string' && isHomeQuickControlKey(value) && homeQuickControlOrder.value.includes(value))
+      return value
+    return 'default'
   })
+
+  const homeHighLoadThreshold = computed<number>(() => readNumberSetting(themeSettings.value, 'homeHighLoadThreshold', 80, 1, 100))
+
+  const homeTrafficWarningThreshold = computed<number>(() => readNumberSetting(themeSettings.value, 'homeTrafficWarningThreshold', 80, 1, 100))
+
+  const homeExpiringDays = computed<number>(() => readNumberSetting(themeSettings.value, 'homeExpiringDays', 30, 1, 3650))
+
+  const hideAdminEntryWhenLoggedOut = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'hideAdminEntryWhenLoggedOut', false))
+
+  const hidePriceWhenLoggedOut = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'hidePriceWhenLoggedOut', false))
 
   const providerAliases = computed<string>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.providerAliases === 'string')
-      return settings.providerAliases.trim()
+    const value = themeSettings.value.providerAliases
+    if (typeof value === 'string')
+      return value.trim()
     return ''
   })
 
-  const disablePageAnimation = computed<boolean>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.disablePageAnimation === 'boolean') {
-      return settings.disablePageAnimation
-    }
-    return false
-  })
+  const disablePageAnimation = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'disablePageAnimation', false))
 
-  const visitorCardEnabled = computed<boolean>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.visitorCardEnabled === 'boolean') {
-      return settings.visitorCardEnabled
-    }
-    return true
-  })
+  const visitorCardEnabled = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'visitorCardEnabled', true))
 
-  const visitorBarEnabled = computed<boolean>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.visitorBarEnabled === 'boolean') {
-      return settings.visitorBarEnabled
-    }
-    return true
-  })
+  const visitorBarEnabled = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'visitorBarEnabled', true))
 
-  const footerPoweredByEnabled = computed<boolean>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.footerPoweredByEnabled === 'boolean') {
-      return settings.footerPoweredByEnabled
-    }
-    return true
-  })
+  const footerPoweredByEnabled = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'footerPoweredByEnabled', true))
 
-  const footerThemeCreditEnabled = computed<boolean>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.footerThemeCreditEnabled === 'boolean') {
-      return settings.footerThemeCreditEnabled
-    }
-    return true
-  })
+  const footerThemeCreditEnabled = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'footerThemeCreditEnabled', true))
 
   const footerPoweredByPrefix = computed<string>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.footerPoweredByPrefix === 'string') {
-      return settings.footerPoweredByPrefix.trim()
-    }
+    const value = themeSettings.value.footerPoweredByPrefix
+    if (typeof value === 'string')
+      return value.trim()
     return 'Powered by'
   })
 
   const footerPoweredByText = computed<string>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.footerPoweredByText === 'string') {
-      return settings.footerPoweredByText.trim()
-    }
+    const value = themeSettings.value.footerPoweredByText
+    if (typeof value === 'string')
+      return value.trim()
     return 'Komari Monitor'
   })
 
   const footerPoweredByUrl = computed<string>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.footerPoweredByUrl === 'string') {
-      return settings.footerPoweredByUrl.trim()
-    }
+    const value = themeSettings.value.footerPoweredByUrl
+    if (typeof value === 'string')
+      return value.trim()
     return 'https://github.com/komari-monitor/komari'
   })
 
   const footerThemeCreditPrefix = computed<string>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.footerThemeCreditPrefix === 'string') {
-      return settings.footerThemeCreditPrefix.trim()
-    }
+    const value = themeSettings.value.footerThemeCreditPrefix
+    if (typeof value === 'string')
+      return value.trim()
     return 'Theme by'
   })
 
   const footerThemeCreditText = computed<string>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.footerThemeCreditText === 'string') {
-      return settings.footerThemeCreditText.trim()
-    }
+    const value = themeSettings.value.footerThemeCreditText
+    if (typeof value === 'string')
+      return value.trim()
     return 'Komari Glassmorphism'
   })
 
   const footerThemeCreditUrl = computed<string>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.footerThemeCreditUrl === 'string') {
-      return settings.footerThemeCreditUrl.trim()
-    }
-    return 'https://github.com/komaris/komari-theme-Glassmorphism'
+    const value = themeSettings.value.footerThemeCreditUrl
+    if (typeof value === 'string')
+      return value.trim()
+    return 'https://github.com/sanrokamlan-prog/komari-theme-Glassmorphism'
   })
 
-  // 计算属性：ICP 备案配置
-  const icpEnabled = computed<boolean>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.icpEnabled === 'boolean') {
-      return settings.icpEnabled
-    }
-    return false
-  })
+  const icpEnabled = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'icpEnabled', false))
 
   const icpNumber = computed<string>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.icpNumber === 'string') {
-      return settings.icpNumber
-    }
+    const value = themeSettings.value.icpNumber
+    if (typeof value === 'string')
+      return value
     return ''
   })
 
   const icpUrl = computed<string>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.icpUrl === 'string' && settings.icpUrl.trim()) {
-      return settings.icpUrl.trim()
-    }
+    const value = themeSettings.value.icpUrl
+    if (typeof value === 'string' && value.trim())
+      return value.trim()
     return 'https://beian.miit.gov.cn/'
   })
 
-  // 计算属性：公安备案配置
-  const policeEnabled = computed<boolean>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.policeEnabled === 'boolean') {
-      return settings.policeEnabled
-    }
-    return false
-  })
+  const policeEnabled = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'policeEnabled', false))
 
   const policeNumber = computed<string>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.policeNumber === 'string') {
-      return settings.policeNumber
-    }
+    const value = themeSettings.value.policeNumber
+    if (typeof value === 'string')
+      return value
     return ''
   })
 
   const policeUrl = computed<string>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.policeUrl === 'string' && settings.policeUrl.trim()) {
-      return settings.policeUrl.trim()
-    }
+    const value = themeSettings.value.policeUrl
+    if (typeof value === 'string' && value.trim())
+      return value.trim()
     return ''
   })
 
   // 计算属性：自定义背景配置
-  const backgroundEnabled = computed<boolean>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.backgroundEnabled === 'boolean') {
-      return settings.backgroundEnabled
-    }
-    return false
-  })
+  const backgroundEnabled = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'backgroundEnabled', false))
 
   const backgroundType = computed<'image' | 'video'>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.backgroundType === 'string') {
+    const settings = themeSettings.value
+    if (typeof settings.backgroundType === 'string') {
       const type = settings.backgroundType
       if (type === 'image' || type === 'video') {
         return type
@@ -458,37 +598,23 @@ const useAppStore = defineStore('app', () => {
     return 'image'
   })
 
-  const desktopBackgroundUrl = computed<string>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.lightBackgroundUrl === 'string') {
-      return settings.lightBackgroundUrl.trim()
-    }
+  const lightBackgroundUrl = computed<string>(() => {
+    const value = themeSettings.value.lightBackgroundUrl
+    if (typeof value === 'string')
+      return value.trim()
     return ''
   })
 
-  const mobileBackgroundUrl = computed<string>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.darkBackgroundUrl === 'string') {
-      return settings.darkBackgroundUrl.trim()
-    }
+  const darkBackgroundUrl = computed<string>(() => {
+    const value = themeSettings.value.darkBackgroundUrl
+    if (typeof value === 'string')
+      return value.trim()
     return ''
   })
 
-  const backgroundBlur = computed<number>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.backgroundBlur === 'number' && settings.backgroundBlur >= 0) {
-      return settings.backgroundBlur
-    }
-    return 0
-  })
+  const backgroundBlur = computed<number>(() => readNumberSetting(themeSettings.value, 'backgroundBlur', 0, 0, Number.MAX_SAFE_INTEGER))
 
-  const backgroundOverlay = computed<number>(() => {
-    const settings = publicSettings.value?.theme_settings
-    if (settings && typeof settings.backgroundOverlay === 'number' && settings.backgroundOverlay >= -100 && settings.backgroundOverlay <= 100) {
-      return settings.backgroundOverlay
-    }
-    return 0
-  })
+  const backgroundOverlay = computed<number>(() => readNumberSetting(themeSettings.value, 'backgroundOverlay', 0, -100, 100))
 
   // 当 publicSettings 加载后，如果 localStorage 没有保存过视图模式或值为非法值，使用默认值
   watch(publicSettings, (settings) => {
@@ -518,11 +644,13 @@ const useAppStore = defineStore('app', () => {
 
   const resolvedThemeMode = computed<'light' | 'dark'>(() => isDark.value ? 'dark' : 'light')
 
+  const desktopBackgroundUrl = lightBackgroundUrl
+  const mobileBackgroundUrl = darkBackgroundUrl
+
   // 计算属性：当前视口尺寸下的背景 URL
   const currentBackgroundUrl = computed<string>(() => {
-    if (isMobileViewport.value && mobileBackgroundUrl.value) {
+    if (isMobileViewport.value && mobileBackgroundUrl.value)
       return mobileBackgroundUrl.value
-    }
     return desktopBackgroundUrl.value
   })
 
@@ -562,11 +690,18 @@ const useAppStore = defineStore('app', () => {
     alertTitle,
     alertContent,
     stopEarth,
+    earthRenderer,
     hideEarth,
     hideGeneralCard,
     visitorGeoArcEnabled,
     generalCardEnabledMap,
     generalCardOrder,
+    homeQuickControlsEnabled,
+    homeQuickControlOrder,
+    homeQuickDefaultControl,
+    homeHighLoadThreshold,
+    homeTrafficWarningThreshold,
+    homeExpiringDays,
     hideAdminEntryWhenLoggedOut,
     hidePriceWhenLoggedOut,
     providerAliases,
@@ -591,6 +726,8 @@ const useAppStore = defineStore('app', () => {
     backgroundType,
     desktopBackgroundUrl,
     mobileBackgroundUrl,
+    lightBackgroundUrl,
+    darkBackgroundUrl,
     currentBackgroundUrl,
     backgroundBlur,
     backgroundOverlay,

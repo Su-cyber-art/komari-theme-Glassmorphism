@@ -31,9 +31,9 @@ interface ProviderResolveInput {
 
 const COMPANY_SUFFIX_REGEX = /\b(?:llc|ltd|limited|inc|incorporated|gmbh|sas|bv|bhd|co|corp|corporation|company|pte|plc|sa|srl|sro|oy|ab|ag|kg|pte\s*ltd|co\s*ltd)\b/g
 const ASN_PREFIX_REGEX = /^AS\d+\s*/i
-const NON_ALNUM_REGEX = /[^\p{Script=Han}a-z0-9]+/gu
+const NON_ALNUM_REGEX = /[^a-z0-9\p{Script=Han}]+/gu
 const SPACE_REGEX = /\s+/g
-const DIGITS_REGEX = /\d+/
+const ASN_DIGITS_REGEX = /\d+/
 const CUSTOM_ALIAS_GROUP_SEPARATOR_REGEX = /[;\n]+/
 
 const PROVIDER_DB: ProviderEntry[] = [
@@ -159,7 +159,7 @@ function matchesKeyword(text: NormalizedText, keyword: string): boolean {
 }
 
 function normalizeAsn(asn?: string): string {
-  const digits = asn?.match(DIGITS_REGEX)?.[0]
+  const digits = asn?.match(ASN_DIGITS_REGEX)?.[0]
   return digits ? `AS${digits}` : ''
 }
 
