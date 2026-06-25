@@ -502,21 +502,10 @@ const cardDefinitions = computed<Record<GeneralCardKey, GeneralMetricCard>>(() =
   },
 }))
 
-const tiledDefaultCardKeys: GeneralCardKey[] = [
-  'onlineNodes',
-  'remainingValue',
-  'monthlyCost',
-  'totalTraffic',
-  'uploadSpeed',
-  'downloadSpeed',
-  'trafficPeak',
-  'expiringNodes',
-]
 const baseVisibleCards = computed(() => appStore.generalCardOrder.map(key => cardDefinitions.value[key]))
-const tiledDefaultCards = computed(() => tiledDefaultCardKeys.map(key => cardDefinitions.value[key]))
 const showEarth = computed(() => !appStore.hideEarth)
 const isTiledEarth = computed(() => showEarth.value && appStore.earthRenderer === 'tiled')
-const visibleCards = computed(() => isTiledEarth.value ? tiledDefaultCards.value : baseVisibleCards.value)
+const visibleCards = computed(() => baseVisibleCards.value)
 const shouldRenderHeader = computed(() => showEarth.value || visibleCards.value.length > 0)
 const hasExtraCards = computed(() => visibleCards.value.length > 6)
 const wrapperClass = computed(() => {

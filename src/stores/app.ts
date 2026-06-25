@@ -45,7 +45,6 @@ export type HomeQuickControlKey
     | 'highLoad'
     | 'expiring'
 
-type GeneralCardPreset = 'basic' | 'ops' | 'finance' | 'traffic' | 'full' | 'custom'
 type HomeQuickControlPreset = 'basic' | 'traffic' | 'ops' | 'full' | 'custom'
 type Lang = 'zh-CN' | 'en-US'
 type NodeViewMode = 'card' | 'list'
@@ -63,15 +62,6 @@ const BYTE_DECIMALS: ByteDecimalsConfig = {
   GB: 1,
   TB: 2,
 }
-
-const DEFAULT_GENERAL_CARD_ORDER: GeneralCardKey[] = [
-  'memory',
-  'disk',
-  'remainingValue',
-  'totalTraffic',
-  'uploadSpeed',
-  'downloadSpeed',
-]
 
 const ALL_GENERAL_CARD_KEYS = [
   'memory',
@@ -133,14 +123,16 @@ const DEFAULT_GENERAL_CARD_ENABLED: Record<GeneralCardKey, boolean> = {
   yearlyCost: false,
 }
 
-const LEGACY_GENERAL_CARD_SETTING_KEYS: Partial<Record<GeneralCardKey, string>> = {
+const GENERAL_CARD_SETTING_KEYS: Record<GeneralCardKey, string> = {
   memory: 'generalCardMemoryEnabled',
   disk: 'generalCardDiskEnabled',
   remainingValue: 'generalCardRemainingValueEnabled',
+  monthlyCost: 'generalCardMonthlyCostEnabled',
   totalTraffic: 'generalCardTotalTrafficEnabled',
   uploadSpeed: 'generalCardUploadSpeedEnabled',
   downloadSpeed: 'generalCardDownloadSpeedEnabled',
   onlineNodes: 'generalCardOnlineNodesEnabled',
+  offlineNodes: 'generalCardOfflineNodesEnabled',
   avgCpu: 'generalCardAvgCpuEnabled',
   avgLoad: 'generalCardAvgLoadEnabled',
   swap: 'generalCardSwapEnabled',
@@ -148,6 +140,17 @@ const LEGACY_GENERAL_CARD_SETTING_KEYS: Partial<Record<GeneralCardKey, string>> 
   connections: 'generalCardConnectionsEnabled',
   cpuCores: 'generalCardCpuCoresEnabled',
   trafficQuota: 'generalCardTrafficQuotaEnabled',
+  trafficPeak: 'generalCardTrafficPeakEnabled',
+  uploadPeakNode: 'generalCardUploadPeakNodeEnabled',
+  downloadPeakNode: 'generalCardDownloadPeakNodeEnabled',
+  highLoadNodes: 'generalCardHighLoadNodesEnabled',
+  expiringNodes: 'generalCardExpiringNodesEnabled',
+  trafficWarnings: 'generalCardTrafficWarningsEnabled',
+  connectionPeakNode: 'generalCardConnectionPeakNodeEnabled',
+  regionDistribution: 'generalCardRegionDistributionEnabled',
+  systemDistribution: 'generalCardSystemDistributionEnabled',
+  virtualizationDistribution: 'generalCardVirtualizationDistributionEnabled',
+  yearlyCost: 'generalCardYearlyCostEnabled',
 }
 
 const DEFAULT_HOME_QUICK_CONTROL_ORDER: HomeQuickControlKey[] = [
@@ -166,59 +169,12 @@ const ALL_HOME_QUICK_CONTROL_KEYS = [
   ...DEFAULT_HOME_QUICK_CONTROL_ORDER,
 ] as const satisfies readonly HomeQuickControlKey[]
 
-const GENERAL_CARD_PRESETS: Record<GeneralCardPreset, GeneralCardKey[]> = {
-  basic: DEFAULT_GENERAL_CARD_ORDER,
-  ops: [
-    ...DEFAULT_GENERAL_CARD_ORDER,
-    'onlineNodes',
-    'offlineNodes',
-    'highLoadNodes',
-    'trafficWarnings',
-    'connectionPeakNode',
-    'avgCpu',
-    'avgLoad',
-    'cpuCores',
-    'trafficQuota',
-  ],
-  finance: [
-    ...DEFAULT_GENERAL_CARD_ORDER,
-    'expiringNodes',
-    'monthlyCost',
-    'yearlyCost',
-  ],
-  traffic: [
-    ...DEFAULT_GENERAL_CARD_ORDER,
-    'trafficPeak',
-    'uploadPeakNode',
-    'downloadPeakNode',
-    'trafficWarnings',
-    'trafficQuota',
-  ],
-  full: [...ALL_GENERAL_CARD_KEYS],
-  custom: DEFAULT_GENERAL_CARD_ORDER,
-}
-
 const HOME_QUICK_CONTROL_PRESETS: Record<HomeQuickControlPreset, HomeQuickControlKey[]> = {
   basic: ['default', 'monthlyCost', 'peak', 'offline'],
   traffic: ['default', 'totalTraffic', 'upload', 'download', 'peak'],
   ops: ['default', 'monthlyCost', 'offline', 'highLoad', 'expiring'],
   full: DEFAULT_HOME_QUICK_CONTROL_ORDER,
   custom: DEFAULT_HOME_QUICK_CONTROL_ORDER,
-}
-
-const GENERAL_CARD_PRESET_ALIASES: Record<string, GeneralCardPreset> = {
-  basic: 'basic',
-  基础: 'basic',
-  ops: 'ops',
-  运维: 'ops',
-  finance: 'finance',
-  财务: 'finance',
-  traffic: 'traffic',
-  流量: 'traffic',
-  full: 'full',
-  完整: 'full',
-  custom: 'custom',
-  自定义: 'custom',
 }
 
 const HOME_QUICK_CONTROL_PRESET_ALIASES: Record<string, HomeQuickControlPreset> = {
@@ -240,19 +196,8 @@ function isValidThemeMode(value: unknown): value is ThemeMode {
   return value === 'auto' || value === 'light' || value === 'dark'
 }
 
-function isGeneralCardKey(value: string): value is GeneralCardKey {
-  return (ALL_GENERAL_CARD_KEYS as readonly string[]).includes(value)
-}
-
 function isHomeQuickControlKey(value: string): value is HomeQuickControlKey {
   return (ALL_HOME_QUICK_CONTROL_KEYS as readonly string[]).includes(value)
-}
-
-function parseGeneralCardPreset(value: unknown): GeneralCardPreset {
-  if (typeof value !== 'string')
-    return 'basic'
-
-  return GENERAL_CARD_PRESET_ALIASES[value.trim()] ?? 'basic'
 }
 
 function parseHomeQuickControlPreset(value: unknown): HomeQuickControlPreset {
@@ -423,10 +368,7 @@ const useAppStore = defineStore('app', () => {
     const enabledMap = { ...DEFAULT_GENERAL_CARD_ENABLED }
 
     for (const key of ALL_GENERAL_CARD_KEYS) {
-      const settingKey = LEGACY_GENERAL_CARD_SETTING_KEYS[key]
-      if (!settingKey)
-        continue
-
+      const settingKey = GENERAL_CARD_SETTING_KEYS[key]
       const value = settings[settingKey]
       if (typeof value === 'boolean')
         enabledMap[key] = value
@@ -436,30 +378,7 @@ const useAppStore = defineStore('app', () => {
   })
 
   const generalCardOrder = computed<GeneralCardKey[]>(() => {
-    const settings = themeSettings.value
-    const hasNewPreset = typeof settings.generalCardPreset === 'string'
-    const preset = parseGeneralCardPreset(settings.generalCardPreset)
-
-    if (hasNewPreset) {
-      if (preset === 'custom')
-        return parseKeyList(settings.generalCardKeys, isGeneralCardKey, DEFAULT_GENERAL_CARD_ORDER)
-
-      return [...GENERAL_CARD_PRESETS[preset]]
-    }
-
-    if (typeof settings.generalCardKeys === 'string')
-      return parseKeyList(settings.generalCardKeys, isGeneralCardKey, DEFAULT_GENERAL_CARD_ORDER)
-
-    const orderedKeys = parseKeyList(settings.generalCardOrder, isGeneralCardKey, DEFAULT_GENERAL_CARD_ORDER)
-    const orderedKeySet = new Set<GeneralCardKey>(orderedKeys)
-    for (const key of ALL_GENERAL_CARD_KEYS) {
-      if (orderedKeySet.has(key))
-        continue
-      orderedKeys.push(key)
-      orderedKeySet.add(key)
-    }
-
-    return orderedKeys.filter(key => generalCardEnabledMap.value[key])
+    return ALL_GENERAL_CARD_KEYS.filter(key => generalCardEnabledMap.value[key])
   })
 
   const homeQuickControlsEnabled = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'homeQuickControlsEnabled', true))
