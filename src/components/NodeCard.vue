@@ -8,10 +8,11 @@ import { DataTooltip } from '@/components/ui/data-tooltip'
 import { ProgressThin } from '@/components/ui/progress-thin'
 import { useNodePingDisplay } from '@/composables/useNodePingDisplay'
 import { useAppStore } from '@/stores/app'
-import { formatBytesPerSecondWithConfig, formatBytesWithConfig, formatDateTime, getStatus } from '@/utils/helper'
+import { formatBytesPerSecondWithConfig, formatBytesWithConfig, formatDateTime, getStatus, getUptimeDays } from '@/utils/helper'
+import { getDiskPercentage, getMemoryPercentage, getTrafficUsed, getTrafficUsedPercentage, hasTrafficLimit } from '@/utils/nodeMetricsHelper'
 import { getOSImage, getOSName } from '@/utils/osImageHelper'
 import { getRegionCode, getRegionDisplayName } from '@/utils/regionHelper'
-import { formatCurrencyValue, formatPriceWithCycle, getDaysOnline, getDaysUntilExpired, getExpireStatus, getRemainingValue, parseTags } from '@/utils/tagHelper'
+import { formatCurrencyValue, formatPriceWithCycle, getDaysUntilExpired, getExpireStatus, getRemainingValue, parseTags } from '@/utils/tagHelper'
 
 const props = defineProps<{ node: NodeData }>()
 const emit = defineEmits<{ click: [] }>()
@@ -38,9 +39,9 @@ const formatBytesPerSecond = (bytes: number) => formatBytesPerSecondWithConfig(b
 const offlineTime = computed(() => formatDateTime(props.node.time))
 
 const cpuStatus = computed(() => getStatus(props.node.cpu ?? 0))
-const memPercentage = computed(() => (props.node.ram ?? 0) / (props.node.mem_total || 1) * 100)
+const memPercentage = computed(() => getMemoryPercentage(props.node))
 const memStatus = computed(() => getStatus(memPercentage.value))
-const diskPercentage = computed(() => (props.node.disk ?? 0) / (props.node.disk_total || 1) * 100)
+const diskPercentage = computed(() => getDiskPercentage(props.node))
 const diskStatus = computed(() => getStatus(diskPercentage.value))
 
 const {
@@ -52,51 +53,12 @@ const {
   lossPanelTooltip,
 } = useNodePingDisplay(() => props.node.uuid)
 
-function showTrafficProgress(node: NodeData): boolean {
-  return node.traffic_limit > 0
-}
-
-const trafficUsedPercentage = computed(() => {
-  if (props.node.traffic_limit <= 0)
-    return 0
-  const { net_total_up = 0, net_total_down = 0, traffic_limit_type } = props.node
-  let used = 0
-  switch (traffic_limit_type) {
-    case 'up':
-      used = net_total_up
-      break
-    case 'down':
-      used = net_total_down
-      break
-    case 'min':
-      used = Math.min(net_total_up, net_total_down)
-      break
-    case 'max':
-      used = Math.max(net_total_up, net_total_down)
-      break
-    case 'sum':
-    default:
-      used = net_total_up + net_total_down
-      break
-  }
-  return Math.min((used / props.node.traffic_limit) * 100, 100)
-})
-
-const trafficUsed = computed(() => {
-  const { net_total_up = 0, net_total_down = 0, traffic_limit_type } = props.node
-  switch (traffic_limit_type) {
-    case 'up': return net_total_up
-    case 'down': return net_total_down
-    case 'min': return Math.min(net_total_up, net_total_down)
-    case 'max': return Math.max(net_total_up, net_total_down)
-    case 'sum':
-    default: return net_total_up + net_total_down
-  }
-})
+const trafficUsedPercentage = computed(() => getTrafficUsedPercentage(props.node))
+const trafficUsed = computed(() => getTrafficUsed(props.node))
 
 // 流量状态颜色
 const trafficStatus = computed(() => {
-  if (!showTrafficProgress(props.node))
+  if (!hasTrafficLimit(props.node))
     return 'success'
   if (trafficUsedPercentage.value >= 95)
     return 'error'
@@ -108,7 +70,7 @@ const trafficStatus = computed(() => {
 })
 
 const trafficPercentageClass = computed(() => {
-  if (!showTrafficProgress(props.node))
+  if (!hasTrafficLimit(props.node))
     return 'text-muted-foreground'
   if (trafficUsedPercentage.value >= 95)
     return 'text-red-500'
@@ -123,17 +85,16 @@ const trafficPercentageClass = computed(() => {
 // 但在线天数、剩余天数等非金额信息仍然展示
 const showPrice = computed(() => appStore.isLoggedIn || !appStore.hidePriceWhenLoggedOut)
 
-// 左上角：在线天数（始终） + 价格（仅在允许显示金额时）
-const onlineInfoTags = computed(() => {
+const uptimeDaysText = computed(() => {
+  const days = getUptimeDays(props.node.uptime)
+  return appStore.lang === 'zh-CN' ? `在线 ${days} 天` : `${days} days online`
+})
+
+const priceText = computed(() => {
   const node = props.node
-  if (node.price === 0)
-    return []
-  const lang = appStore.lang
-  const days = getDaysOnline(node.created_at)
-  const tags = [lang === 'zh-CN' ? `在线 ${days} 天` : `${days} days online`]
-  if (showPrice.value)
-    tags.push(formatPriceWithCycle(node.price, node.billing_cycle, node.currency, lang))
-  return tags
+  if (node.price === 0 || !showPrice.value)
+    return ''
+  return formatPriceWithCycle(node.price, node.billing_cycle, node.currency, appStore.lang)
 })
 
 // 第三列：剩余天数（始终） + 剩余价值（仅在允许显示金额时），带图标与相邻列对齐
@@ -183,7 +144,7 @@ function hasRegion(region: string | null | undefined): boolean {
   >
     <!-- 头部：在线点 + 名称 -->
     <template #header>
-      <div class="flex items-center gap-2 min-w-0 overflow-hidden">
+      <div class="flex items-center gap-2 min-w-0">
         <div class="relative size-2.5 shrink-0">
           <span
             class="size-2.5 rounded-full block"
@@ -194,30 +155,35 @@ function hasRegion(region: string | null | undefined): boolean {
             :class="props.node.online ? 'bg-green-500' : 'bg-red-500'"
           />
         </div>
+        <span class="text-sm font-bold flex-1 min-w-0 truncate">{{ props.node.name }}</span>
+      </div>
+    </template>
+
+    <!-- 头部右侧：OS + 国旗 -->
+    <template #header-extra>
+      <div class="flex gap-1.5 items-center shrink-0">
+        <img :src="getOSImage(props.node.os)" :alt="getOSName(props.node.os)" class="size-4">
         <img
           v-if="hasRegion(props.node.region)"
           :src="`/images/flags/${getRegionCode(props.node.region)}.svg`"
           :alt="getRegionDisplayName(props.node.region)"
           class="size-5 shrink-0"
         >
-        <span class="text-sm font-bold flex-1 min-w-0 truncate">{{ props.node.name }}</span>
       </div>
-    </template>
-
-    <!-- 头部右侧：系统图标 -->
-    <template #header-extra>
-      <img :src="getOSImage(props.node.os)" :alt="getOSName(props.node.os)" class="size-4 shrink-0">
     </template>
 
     <template #default>
       <div class="flex flex-col relative" :class="nodeCardContentClass">
-        <!-- 价格标签行（在线天数 + 价格） -->
-        <div v-if="onlineInfoTags.length" class="flex gap-1.5 flex-wrap -mt-1">
+        <!-- 在线天数固定展示，价格独立展示，避免不同主机卡片高度不一致 -->
+        <div class="relative z-20 flex items-center gap-1.5 -mt-1 h-[19px] overflow-hidden">
+          <span class="shrink-0 text-[11px] px-2 py-0.5 rounded-full bg-slate-500/10 text-muted-foreground leading-tight">
+            {{ uptimeDaysText }}
+          </span>
           <span
-            v-for="(tag, i) in onlineInfoTags" :key="i"
-            class="text-[11px] px-2 py-0.5 rounded-full bg-slate-500/10 text-muted-foreground leading-tight"
+            v-if="priceText"
+            class="min-w-0 truncate text-[11px] px-2 py-0.5 rounded-full bg-slate-500/10 text-muted-foreground leading-tight"
           >
-            {{ tag }}
+            {{ priceText }}
           </span>
         </div>
 
@@ -231,7 +197,7 @@ function hasRegion(region: string | null | undefined): boolean {
             </div>
             <ProgressThin :percentage="props.node.cpu ?? 0" :status="cpuStatus" :height="4" />
             <div class="text-[11px] text-muted-foreground truncate">
-              {{ props.node.load.toFixed(2) }}, {{ props.node.load5.toFixed(2) }}, {{ props.node.load15.toFixed(2) }}
+              {{ (props.node.load ?? 0).toFixed(2) }}, {{ (props.node.load5 ?? 0).toFixed(2) }}, {{ (props.node.load15 ?? 0).toFixed(2) }}
             </div>
           </div>
 
@@ -264,13 +230,13 @@ function hasRegion(region: string | null | undefined): boolean {
             <div class="flex justify-between text-xs">
               <span class="text-muted-foreground">流量</span>
               <span class="tabular-nums font-medium" :class="trafficPercentageClass">
-                {{ showTrafficProgress(props.node) ? `${trafficUsedPercentage.toFixed(1)}%` : '∞' }}
+                {{ hasTrafficLimit(props.node) ? `${trafficUsedPercentage.toFixed(1)}%` : '∞' }}
               </span>
             </div>
             <ProgressThin :percentage="trafficUsedPercentage" :status="trafficStatus" :height="4" />
             <div class="text-[11px] truncate" :class="trafficUsedPercentage >= 95 ? 'text-red-500' : 'text-muted-foreground'">
               {{ formatBytes(trafficUsed) }}
-              <template v-if="showTrafficProgress(props.node)">
+              <template v-if="hasTrafficLimit(props.node)">
                 / {{ formatBytes(props.node.traffic_limit) }}
               </template>
               <template v-else>
@@ -324,10 +290,10 @@ function hasRegion(region: string | null | undefined): boolean {
             </template>
             <template v-else>
               <div class="text-[11px] text-muted-foreground truncate">
-                {{ props.node.load.toFixed(2) }}
+                {{ (props.node.load ?? 0).toFixed(2) }}
               </div>
               <div class="text-[11px] text-muted-foreground truncate">
-                {{ props.node.load5.toFixed(2) }} / {{ props.node.load15.toFixed(2) }}
+                {{ (props.node.load5 ?? 0).toFixed(2) }} / {{ (props.node.load15 ?? 0).toFixed(2) }}
               </div>
             </template>
           </div>
