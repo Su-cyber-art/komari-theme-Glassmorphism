@@ -331,7 +331,7 @@ const useAppStore = defineStore('app', () => {
         return mode
       }
     }
-    return 'websocket'
+    return 'http'
   })
 
   // 字节格式化精度（固定配置）
@@ -349,6 +349,8 @@ const useAppStore = defineStore('app', () => {
     const value = themeSettings.value.alertContent
     return typeof value === 'string' ? value : ''
   })
+
+  const dataUpdateInterval = computed<number>(() => readNumberSetting(themeSettings.value, 'dataUpdateInterval', 3, 1, 60))
 
   const stopEarth = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'stopEarth', false))
 
@@ -608,6 +610,7 @@ const useAppStore = defineStore('app', () => {
     alertEnabled,
     alertTitle,
     alertContent,
+    dataUpdateInterval,
     stopEarth,
     earthRenderer,
     hideEarth,
