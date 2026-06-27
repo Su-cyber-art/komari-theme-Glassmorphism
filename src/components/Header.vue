@@ -53,24 +53,24 @@ const sitename = computed(() => appStore.publicSettings?.sitename || 'Komari Mon
   <VisitorInfo v-if="!appStore.loading && (appStore.visitorCardEnabled || appStore.visitorBarEnabled)" />
 
   <div
-    class="transition-all duration-200 top-0 sticky z-10 border-b border-transparent"
+    class="app-header transition-all duration-200 top-0 sticky z-10 border-b border-transparent"
     :class="isScrolled ? '!border-slate-500/10 backdrop-blur-lg' : 'bg-transparent'"
   >
-    <div class="px-4 flex-between h-14 max-w-[1280px] mx-auto">
-      <div class="flex items-center gap-3 cursor-pointer" @click="router.push('/')">
-        <Avatar class="size-8">
+    <div class="app-header__bar px-4 flex-between h-14 max-w-[1280px] mx-auto">
+      <div class="app-header__brand flex items-center gap-3 cursor-pointer" @click="router.push('/')">
+        <Avatar class="app-header__avatar size-8">
           <AvatarImage :src="siteFavicon" :alt="sitename" />
           <AvatarFallback>{{ sitename.slice(0, 1) }}</AvatarFallback>
         </Avatar>
-        <h3 class="m-0 text-lg font-semibold">
+        <h3 class="app-header__title m-0 text-lg font-semibold">
           {{ sitename }}
         </h3>
       </div>
       <TooltipProvider :delay-duration="200">
-        <div class="flex items-center gap-2">
+        <div class="app-header__actions flex items-center gap-2">
           <Tooltip v-for="button in actionButtons" :key="button.action">
             <TooltipTrigger as-child>
-              <Button variant="ghost" size="icon-sm" @click="handleButtonClick(button.action)">
+              <Button class="app-header__button" variant="ghost" size="icon-sm" @click="handleButtonClick(button.action)">
                 <Icon :icon="button.icon" :width="18" :height="18" />
               </Button>
             </TooltipTrigger>
