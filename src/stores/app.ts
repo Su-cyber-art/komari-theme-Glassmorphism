@@ -363,8 +363,6 @@ const useAppStore = defineStore('app', () => {
 
   const hideGeneralCard = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'hideGeneralCard', false))
 
-  const visitorGeoArcEnabled = computed<boolean>(() => readBooleanSetting(themeSettings.value, 'visitorGeoArcEnabled', true))
-
   const generalCardEnabledMap = computed<Record<GeneralCardKey, boolean>>(() => {
     const settings = themeSettings.value
     const enabledMap = { ...DEFAULT_GENERAL_CARD_ENABLED }
@@ -615,7 +613,6 @@ const useAppStore = defineStore('app', () => {
     earthRenderer,
     hideEarth,
     hideGeneralCard,
-    visitorGeoArcEnabled,
     generalCardEnabledMap,
     generalCardOrder,
     homeQuickControlsEnabled,
